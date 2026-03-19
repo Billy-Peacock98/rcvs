@@ -67,6 +67,12 @@ class ContactTracker:
                     self._sheet.append_row(SHEET_COLUMNS)
                     logger.info("Created new Google Sheet: {}", sheet_name)
 
+                # Ensure header row exists
+                first_row = self._sheet.row_values(1)
+                if first_row != SHEET_COLUMNS:
+                    self._sheet.insert_row(SHEET_COLUMNS, 1)
+                    logger.info("Added missing header row to sheet")
+
                 logger.info("Connected to Google Sheet: {}", sheet_name)
             except Exception as exc:
                 logger.warning("Failed to connect to Google Sheets: {}", exc)

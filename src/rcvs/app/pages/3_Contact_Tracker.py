@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from rcvs.app.components.data_loader import enrich_with_status, load_practices
-from rcvs.app.components.filters import render_region_selector
+from rcvs.app.components.filters import render_region_selector, render_sidebar_filters
 from rcvs.sheets.tracker import STATUSES, ContactTracker
 
 st.title("Contact Tracker")
@@ -57,17 +57,19 @@ if not tracker.is_configured:
 
     statuses = st.session_state.local_statuses
 else:
+    tracker.init_sheet(df["name"].tolist())
     statuses = tracker.get_all_statuses()
 
-df = enrich_with_status(df, statuses)
+filtered = render_sidebar_filters(df)
+filtered = enrich_with_status(filtered, statuses)
 
-st.caption(f"{len(df)} practices in {region.title()}")
+st.caption(f"{len(filtered)} practices in {region.title()}")
 
 status_filter = st.multiselect("Filter by status", STATUSES)
 if status_filter:
-    df = df[df["status"].isin(status_filter)]
+    filtered = filtered[filtered["status"].isin(status_filter)]
 
-for idx, row in df.iterrows():
+for idx, row in filtered.iterrows():
     with st.container():
         col1, col2, col3, col4 = st.columns([3, 2, 2, 3])
 
