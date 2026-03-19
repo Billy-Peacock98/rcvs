@@ -52,29 +52,49 @@ def _build_authenticator() -> stauth.Authenticate | None:
     )
 
 
-def require_auth() -> None:
+def is_authenticated() -> bool:
     """
-    Gate the current page behind authentication.
+    Check whether the user is authenticated.
 
-    If ``st.secrets`` has no ``[auth]`` section the page loads without
-    restriction (convenient for local development).  Otherwise the user
-    must log in before any page content is rendered.
+    Returns True immediately when no auth secrets are configured
+    (convenient for local development).
 
-    Call this at the very top of every page, before any other rendering.
+    :return: True if the user is logged in or auth is not configured
     """
     authenticator = _build_authenticator()
+    if authenticator is None:
+        return True
 
+    return st.session_state.get("authentication_status") is True
+
+
+def build_login_page() -> None:
+    """
+    Render the login form as a standalone page.
+
+    Intended for use with ``st.Page(build_login_page, ...)``.
+    """
+    authenticator = _build_authenticator()
     if authenticator is None:
         return
 
-    if not st.session_state.get("authentication_status"):
-        authenticator.login(location="main")
+    authenticator.login(location="main")
 
-        if st.session_state.get("authentication_status") is False:
-            st.error("Incorrect username or password.")
-        elif st.session_state.get("authentication_status") is None:
-            st.info("Please log in to continue.")
+    if st.session_state.get("authentication_status") is False:
+        st.error("Incorrect username or password.")
+    elif st.session_state.get("authentication_status") is None:
+        st.info("Please log in to continue.")
 
-        st.stop()
 
-    authenticator.logout(location="sidebar")
+def render_logout() -> None:
+    """
+    Render the logout button in the sidebar.
+
+    Only renders when auth is configured and user is logged in.
+    """
+    authenticator = _build_authenticator()
+    if authenticator is None:
+        return
+
+    if st.session_state.get("authentication_status"):
+        authenticator.logout(location="sidebar")
