@@ -8,11 +8,13 @@ Scrapes practice data from the [RCVS Find a Vet](https://findavet.rcvs.org.uk/fi
 
 ## Features
 
-- **Scraper** — Extracts practice details (contact info, staff, opening hours, animals treated, accreditations) from the RCVS website with rate limiting and retry logic
-- **Interactive Table** — Searchable, filterable list of practices with expandable detail rows
-- **Map View** — Pinpoints practices on a map using coordinates from RCVS
+- **Full UK Coverage** — 2,439 VetGDP-approved practices scraped from the RCVS directory
+- **Distance Filter** — Practices sorted by distance from Bookham, Surrey (default 25-mile radius, adjustable via slider)
+- **Interactive Map** — Folium map with clickable pins; single-click a marker to see full practice details
+- **Searchable Table** — Filterable dataframe with type-to-search practice selector for detailed views
 - **Contact Tracker** — Track which practices you've contacted, with optional Google Sheets sync
 - **Export** — Download filtered results as CSV or Excel
+- **Authentication** — Cookie-based login via streamlit-authenticator (optional, for deployed app)
 
 ## Quick Start
 
@@ -22,25 +24,23 @@ Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 # Install dependencies
 uv sync
 
-# Launch the web app (uses pre-scraped data)
+# Launch the web app (uses pre-scraped UK data)
 uv run streamlit run src/rcvs/app/main.py
 ```
 
-## Scraping New Regions
+## Re-scraping Data
 
 ```bash
-# Scrape practices for a region
-uv run rcvs-scrape --keyword surrey --output-dir data/practices
-
-# Scrape a different region
-uv run rcvs-scrape --keyword hampshire --output-dir data/practices
+# Scrape all UK VetGDP practices (~2,400+, takes ~80 minutes)
+uv run rcvs-scrape --keyword uk --output-dir data/practices
 ```
 
 The app auto-discovers all `*_vetgdp.json` files in `data/practices/`, so new regions appear in the region selector immediately.
 
 ## Tech Stack
 
-- **Frontend**: [Streamlit](https://streamlit.io/)
+- **Frontend**: [Streamlit](https://streamlit.io/) with [streamlit-folium](https://folium.streamlit.app/) for maps
+- **Authentication**: [streamlit-authenticator](https://github.com/mkhorasani/Streamlit-Authenticator)
 - **Scraping**: requests + BeautifulSoup
 - **Data models**: Pydantic
 - **Contact tracking**: Google Sheets (optional, with local fallback)
@@ -53,13 +53,13 @@ src/rcvs/
 ├── geo/            # Postcode geocoding fallback
 ├── sheets/         # Google Sheets contact tracker integration
 └── app/            # Streamlit web application
-    ├── main.py
-    ├── pages/      # Table, Map, Contact Tracker, Export
-    └── components/ # Shared filters and data loading
+    ├── main.py     # Router (st.navigation + auth gate)
+    ├── pages/      # Home, Table, Map, Contact Tracker, Export
+    └── components/ # Shared filters, detail panel, data loading, auth
 ```
 
 ## Data
 
-Pre-scraped data is included in `data/practices/`. Currently available:
+Pre-scraped data is included in `data/practices/`:
 
-- **Surrey** — 71 VetGDP practices (94% with email/phone, 100% with coordinates)
+- **UK** — 2,439 VetGDP practices (90% with email, 94% with phone, 98% with coordinates)

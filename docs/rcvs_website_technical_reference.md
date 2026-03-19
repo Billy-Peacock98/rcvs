@@ -2,7 +2,7 @@
 
 > **This document must be kept up to date.** Any time new information is discovered about the RCVS website structure, data availability, or scraping behaviour, update this document immediately.
 
-Last updated: 2026-03-18
+Last updated: 2026-03-19
 
 ---
 
@@ -52,11 +52,11 @@ Multiple `filter-animals` parameters can be stacked:
 - **Practice interests**: behavioural therapy, complementary medicine
 - **Development & training**: VetGDP, VN Training, EMS
 
-### Result Counts (as of 2026-03-18)
+### Result Counts (as of 2026-03-19)
 
 | Search | Results | Pages |
 |--------|---------|-------|
-| All UK VetGDP practices | 2,488 | 249 |
+| All UK VetGDP practices (keyword blank) | 2,439 scraped (site reports ~2,488) | 249 |
 | `surrey` + VetGDP | 71 | 8 |
 
 ---
@@ -397,17 +397,16 @@ This can serve as a fallback coordinate source, but our scraper gets coordinates
 
 ## 6. Scraping Strategy
 
-### Scope for Surrey VetGDP Practices
+### Scope
 
-| Step | Requests | Description |
-|------|----------|-------------|
-| List pages | 8 | Pages 1–8 of `filter-keyword=surrey&filter-vetgdp=true` |
-| Detail pages | 71 | One per practice, URL extracted from list page links |
-| **Total** | **79** | Very manageable volume |
+| Scrape | List Requests | Detail Requests | Total | Duration |
+|--------|--------------|-----------------|-------|----------|
+| UK-wide (all VetGDP) | 249 | 2,439 | 2,688 | ~80 minutes |
+| Surrey only | 8 | 71 | 79 | ~2 minutes |
 
 ### Implemented Approach
 
-1. **Scrape list pages** (pages 1–N): extract practice stubs (name, slug, address, phone, lat/lng from map markers, training flags, accreditations)
+1. **Scrape list pages** (pages 1–N): extract practice stubs (name, slug, address, phone, lat/lng from map markers, city, county, training flags, accreditations)
 2. **Scrape detail pages** (one per practice): extract full contact info (email via CF decode, website, phone), staff (vets + nurses with qualifications and roles), animals treated, opening hours, accreditations, facilities, training flags
 3. **Rate limiting**: 1.5-second delay between requests
 4. **User-Agent**: `RCVS-VetGDP-Finder/0.1 (educational project; polite scraper)`
@@ -422,25 +421,26 @@ This can serve as a fallback coordinate source, but our scraper gets coordinates
 
 ### Data Extracted Per Practice
 
-| Field | Source | Extraction Method | Completeness (Surrey) |
-|-------|--------|-------------------|----------------------|
-| Practice name | List page | `h2.item-title > a` text | 71/71 (100%) |
-| URL slug | List page | `h2.item-title > a[href]` last segment | 71/71 (100%) |
-| Address (full) | Detail page sidebar | `div.practice-address > p` `<br>`-split lines | 71/71 (100%) |
-| Postcode | List page | `div.gmap-marker[data-postcode]` | 71/71 (100%) |
-| Phone | Detail page sidebar | `a[href^="tel:"]` text | 67/71 (94%) |
-| Email | Detail page sidebar | `span.__cf_email__[data-cfemail]` decoded | 67/71 (94%) |
-| Website | Detail page sidebar | `a[target="_blank"]` near Website SVG | 68/71 (96%) |
-| Lat/Lng | List page | `div.gmap-marker[data-lat/data-lng]` | 70/71 (99%) |
-| Vets (staff list) | Detail page | `div.staffList-container` under "surgeons" heading | 57/71 (80%) |
+| Field | Source | Extraction Method | Completeness (UK, n=2,439) |
+|-------|--------|-------------------|---------------------------|
+| Practice name | List page | `h2.item-title > a` text | 2,439 (100%) |
+| URL slug | List page | `h2.item-title > a[href]` last segment | 2,439 (100%) |
+| Address (full) | Detail page sidebar | `div.practice-address > p` `<br>`-split lines | 2,439 (100%) |
+| Postcode | List page | `div.gmap-marker[data-postcode]` | 2,439 (100%) |
+| Phone | Detail page sidebar | `a[href^="tel:"]` text | 2,306 (94%) |
+| Email | Detail page sidebar | `span.__cf_email__[data-cfemail]` decoded | 2,198 (90%) |
+| Website | Detail page sidebar | `a[target="_blank"]` near Website SVG | 2,103 (86%) |
+| Lat/Lng | List page | `div.gmap-marker[data-lat/data-lng]` | 2,411 (98%) |
+| Vets (staff list) | Detail page | `div.staffList-container` under "surgeons" heading | ~80% |
 | Nurses (staff list) | Detail page | `div.staffList-container` under "nurses" heading | Varies |
-| Animals treated | Detail page | `figcaption` in `div.practice-speciesTreated` | 69/71 (97%) |
-| Opening hours | Detail page sidebar | `table.practice-openHours > tr > td` | 46/71 (65%) |
+| Animals treated | Detail page | `figcaption` in `div.practice-speciesTreated` | ~97% |
+| Opening hours | Detail page sidebar | `table.practice-openHours > tr > td` | ~65% |
 | Accreditations | Detail page | `span.txt` in `div.practice-accreditationDetail` | Most |
 | Facilities | Detail page | `span` in `div.practice-facilitiesAdditional li` | Most |
-| VN Training flag | List page | `span.filter.dt-vn-training` present/absent | 63/71 (89%) |
-| EMS flag | List page | `span.filter.dt-ems` present/absent | 31/71 (44%) |
-| VetGDP flag | List page | Always true (filtered search) | 71/71 (100%) |
+| City/County | List page | `div.gmap-marker[data-city/data-county]` | Most |
+| VN Training flag | List page | `span.filter.dt-vn-training` present/absent | ~89% |
+| EMS flag | List page | `span.filter.dt-ems` present/absent | ~44% |
+| VetGDP flag | List page | Always true (filtered search) | 2,439 (100%) |
 
 ---
 
