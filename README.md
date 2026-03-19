@@ -12,8 +12,8 @@ Scrapes practice data from the [RCVS Find a Vet](https://findavet.rcvs.org.uk/fi
 - **Distance Filter** — Practices sorted by distance from Bookham, Surrey (default 25-mile radius, adjustable via slider)
 - **Interactive Map** — Folium map with clickable pins; single-click a marker to see full practice details
 - **Searchable Table** — Filterable dataframe with type-to-search practice selector for detailed views
-- **Contact Tracker** — Track which practices you've contacted, with optional Google Sheets sync
-- **Export** — Download filtered results as CSV or Excel
+- **Contact Tracker** — Single-practice view with auto-saving status and notes to Google Sheets, progress summary table, status counts at a glance
+- **Export** — Download filtered results as CSV or Excel, including contact status and notes; filter by status for targeted exports (e.g. "Not Contacted" call lists)
 - **Authentication** — Cookie-based login via streamlit-authenticator (optional, for deployed app)
 
 ## Quick Start

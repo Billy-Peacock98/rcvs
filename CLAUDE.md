@@ -24,7 +24,8 @@ Source: https://findavet.rcvs.org.uk/find-a-vet-practice/?filter-keyword=&filter
 - Searchable practice selectbox replaces expander list (scales to thousands)
 - `st.navigation` API for custom sidebar labels
 - Authentication via `streamlit-authenticator` with graceful fallback
-- Contact Tracker supports `st.secrets` for Cloud credentials and falls back to local-only mode
+- Contact Tracker: single-practice view with auto-save to Google Sheets, status summary, progress table
+- Export page includes contact status/notes and status filter for targeted exports (e.g. "Not Contacted" call lists)
 
 ### Data Quality — UK Scrape
 
@@ -101,8 +102,8 @@ rcvs/
             │   ├── 0_Home.py             # Landing page
             │   ├── 1_Practice_Table.py   # Searchable table + selectbox detail view
             │   ├── 2_Map_View.py         # Interactive folium map with click-to-detail
-            │   ├── 3_Contact_Tracker.py  # Status tracking (Sheets or local)
-            │   └── 4_Export.py           # CSV/Excel download
+            │   ├── 3_Contact_Tracker.py  # Single-practice status view with auto-save
+            │   └── 4_Export.py           # CSV/Excel download with status + notes
             └── components/
                 ├── __init__.py
                 ├── auth.py         # Authentication (streamlit-authenticator, cached instance)
@@ -119,7 +120,8 @@ rcvs/
 - **Scraper separate from app**: Data is committed to the repo as JSON. The Streamlit app never hits the RCVS website — it reads from local files. This decouples scraping from the user experience.
 - **st.navigation for routing**: `main.py` is the single router using `st.Page`/`st.navigation`. This allows custom sidebar labels and centralises auth. Page files contain only their content logic.
 - **Cached authenticator**: The `stauth.Authenticate` instance is stored in `st.session_state` to avoid duplicate `CookieManager` components per script run.
-- **Google Sheets tracker with graceful fallback**: Credentials are loaded from `st.secrets` (for Cloud) or a local `service-account.json` file. When neither is present, the Contact Tracker falls back to session-only local state.
+- **Google Sheets tracker with graceful fallback**: Credentials are loaded from `st.secrets` (for Cloud) or a local `service-account.json` file. When neither is present, the Contact Tracker falls back to session-only local state. Sheet is auto-initialised with all practice names on first visit. Status/notes auto-save on widget change (no save button).
+- **Contact-aware exports**: The Export page loads statuses from Sheets and includes contact status + notes columns. A status filter allows exporting specific groups (e.g. only "Not Contacted" for call lists).
 - **Interactive folium map**: `folium.Marker` with tooltips rendered via `streamlit-folium`. Single-click on a pin shows full practice details below the map. `last_object_clicked_tooltip` identifies the clicked practice by name.
 - **Multi-region via convention**: `data/practices/{keyword}_vetgdp.json` files are auto-discovered by the app's region selector.
 
