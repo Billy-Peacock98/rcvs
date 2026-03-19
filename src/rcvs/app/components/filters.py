@@ -106,7 +106,7 @@ def render_region_selector() -> str | None:
     region = st.sidebar.selectbox(
         "Region",
         regions,
-        format_func=lambda r: r.title(),
+        format_func=lambda r: r.upper() if len(r) <= 2 else r.title(),
     )
 
     return region

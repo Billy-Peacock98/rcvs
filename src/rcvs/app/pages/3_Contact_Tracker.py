@@ -5,6 +5,7 @@ import streamlit as st
 
 from rcvs.app.components.data_loader import enrich_with_status, load_practices
 from rcvs.app.components.filters import render_region_selector, render_sidebar_filters
+from rcvs.app.components.practice_detail import render_practice_detail
 from rcvs.sheets.tracker import STATUSES, ContactTracker
 
 st.title("Contact Tracker")
@@ -65,51 +66,83 @@ else:
 filtered = render_sidebar_filters(df)
 filtered = enrich_with_status(filtered, statuses)
 
-st.caption(f"{len(filtered)} practices in {region.title()}")
+# --- Status summary ---
+status_counts = filtered["status"].value_counts()
+summary_parts = []
+for s in STATUSES:
+    count = status_counts.get(s, 0)
+    if count > 0 or s == "Not Contacted":
+        summary_parts.append(f"**{s}:** {count}")
+st.markdown(" / ".join(summary_parts))
 
-status_filter = st.multiselect("Filter by status", STATUSES)
-if status_filter:
-    filtered = filtered[filtered["status"].isin(status_filter)]
+# --- Practice selector ---
+practice_names = filtered["name"].tolist()
+selected = st.selectbox(
+    "Select a practice",
+    options=practice_names,
+    index=None,
+    placeholder="Search for a practice...",
+)
 
-for idx, row in filtered.iterrows():
-    with st.container():
-        col1, col2, col3, col4 = st.columns([3, 2, 2, 3])
+if selected:
+    row = filtered[filtered["name"] == selected].iloc[0]
+    current_status = row.get("status", "Not Contacted")
+    current_notes = row.get("notes", "")
 
-        with col1:
-            st.markdown(f"**{row['name']}**")
-            st.caption(f"{row.get('phone', '')} | {row.get('email', '')}")
+    render_practice_detail(row)
 
-        with col2:
-            current_status = row.get("status", "Not Contacted")
-            new_status = st.selectbox(
-                "Status",
-                STATUSES,
-                index=STATUSES.index(current_status) if current_status in STATUSES else 0,
-                key=f"status_{idx}",
-                label_visibility="collapsed",
-            )
+    st.divider()
 
-        with col3:
-            notes = st.text_input(
-                "Notes",
-                value=row.get("notes", ""),
-                key=f"notes_{idx}",
-                label_visibility="collapsed",
-                placeholder="Notes...",
-            )
+    def _save_status() -> None:
+        """Auto-save callback for status or notes change."""
+        new_status = st.session_state[f"tracker_status_{selected}"]
+        new_notes = st.session_state[f"tracker_notes_{selected}"]
+        if tracker.is_configured:
+            tracker.update_status(selected, new_status, new_notes)
+        else:
+            st.session_state.local_statuses[selected] = {
+                "status": new_status,
+                "notes": new_notes,
+                "last_updated": "",
+            }
 
-        with col4:
-            if st.button("Save", key=f"save_{idx}"):
-                if tracker.is_configured:
-                    tracker.update_status(row["name"], new_status, notes)
-                    st.success(f"Saved: {row['name']}")
-                else:
-                    st.session_state.local_statuses[row["name"]] = {
-                        "status": new_status,
-                        "notes": notes,
-                        "last_updated": "",
-                    }
-                    st.success(f"Saved locally: {row['name']}")
-                st.rerun()
+    col1, col2 = st.columns(2)
+    with col1:
+        st.selectbox(
+            "Status",
+            STATUSES,
+            index=STATUSES.index(current_status) if current_status in STATUSES else 0,
+            key=f"tracker_status_{selected}",
+            on_change=_save_status,
+        )
+    with col2:
+        st.text_area(
+            "Notes",
+            value=current_notes,
+            key=f"tracker_notes_{selected}",
+            on_change=_save_status,
+            placeholder="Add notes...",
+            height=100,
+        )
 
-        st.divider()
+# --- Contacted practices summary ---
+contacted = filtered[filtered["status"] != "Not Contacted"]
+if not contacted.empty:
+    st.divider()
+    st.subheader(f"Contacted Practices ({len(contacted)})")
+
+    display_cols = ["name", "status", "notes"]
+    if "distance_miles" in contacted.columns:
+        display_cols.insert(1, "distance_miles")
+
+    st.dataframe(
+        contacted[display_cols].sort_values("status"),
+        column_config={
+            "name": st.column_config.TextColumn("Practice", width="medium"),
+            "distance_miles": st.column_config.NumberColumn("Distance (mi)", format="%.1f", width="small"),
+            "status": st.column_config.TextColumn("Status", width="small"),
+            "notes": st.column_config.TextColumn("Notes", width="large"),
+        },
+        use_container_width=True,
+        hide_index=True,
+    )
