@@ -19,8 +19,17 @@ if df.empty:
     st.warning("No practices found.")
     st.stop()
 
-creds_path = Path("service-account.json")
-tracker = ContactTracker(credentials_path=creds_path if creds_path.exists() else None)
+creds_dict = None
+creds_path = None
+
+if "gcp_service_account" in st.secrets:
+    creds_dict = dict(st.secrets["gcp_service_account"])
+else:
+    _path = Path("service-account.json")
+    if _path.exists():
+        creds_path = _path
+
+tracker = ContactTracker(credentials_path=creds_path, credentials_dict=creds_dict)
 
 if not tracker.is_configured:
     st.info("Google Sheets is not configured. Contact tracking is in local-only mode.")

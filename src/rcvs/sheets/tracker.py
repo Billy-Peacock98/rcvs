@@ -19,18 +19,26 @@ class ContactTracker:
     def __init__(
         self,
         credentials_path: Path | None = None,
+        credentials_dict: dict | None = None,
         sheet_name: str = "VetGDP Contact Tracker"
     ) -> None:
         """
         Initialise the tracker.
 
+        Accepts credentials as either a file path or a dict (e.g. from
+        ``st.secrets``). The dict takes precedence if both are provided.
+
         :param credentials_path: Path to Google service account JSON
+        :param credentials_dict: Service account credentials as a dict
         :param sheet_name: Name of the Google Sheet to use
         """
         self._sheet = None
         self._sheet_name = sheet_name
 
-        if credentials_path and credentials_path.exists():
+        has_file = credentials_path and credentials_path.exists()
+        has_dict = credentials_dict is not None
+
+        if has_dict or has_file:
             try:
                 import gspread
                 from google.oauth2.service_account import Credentials
@@ -39,9 +47,16 @@ class ContactTracker:
                     "https://www.googleapis.com/auth/spreadsheets",
                     "https://www.googleapis.com/auth/drive",
                 ]
-                creds = Credentials.from_service_account_file(
-                    str(credentials_path), scopes=scopes
-                )
+
+                if has_dict:
+                    creds = Credentials.from_service_account_info(
+                        credentials_dict, scopes=scopes
+                    )
+                else:
+                    creds = Credentials.from_service_account_file(
+                        str(credentials_path), scopes=scopes
+                    )
+
                 gc = gspread.authorize(creds)
 
                 try:
