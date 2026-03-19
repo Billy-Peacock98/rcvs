@@ -159,6 +159,8 @@ def _parse_item(
         "postcode": marker_data.get("postcode", ""),
         "lat": marker_data.get("lat"),
         "lng": marker_data.get("lng"),
+        "city": marker_data.get("city", ""),
+        "county": marker_data.get("county", ""),
         "has_vn_training": has_vn_training,
         "has_ems": has_ems,
         "accreditations": accreditations,

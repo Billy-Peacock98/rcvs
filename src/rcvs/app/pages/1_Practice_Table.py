@@ -3,6 +3,7 @@ import streamlit as st
 from rcvs.app.components.auth import require_auth
 from rcvs.app.components.data_loader import load_practices
 from rcvs.app.components.filters import render_region_selector, render_sidebar_filters
+from rcvs.app.components.practice_detail import render_practice_detail
 
 st.set_page_config(page_title="Practice Table", page_icon="🐾", layout="wide")
 require_auth()
@@ -49,34 +50,15 @@ st.dataframe(
 )
 
 st.subheader("Practice Details")
-st.markdown("Click on a practice name to expand details.")
 
-for _, row in filtered.iterrows():
-    with st.expander(f"{row['name']} — {row.get('postcode', '')}"):
-        col1, col2 = st.columns(2)
+practice_names = filtered["name"].tolist()
+selected = st.selectbox(
+    "Select a practice",
+    options=practice_names,
+    index=None,
+    placeholder="Search for a practice...",
+)
 
-        with col1:
-            st.markdown(f"**Address:** {row.get('address', 'N/A')}")
-            st.markdown(f"**Postcode:** {row.get('postcode', 'N/A')}")
-            st.markdown(f"**Phone:** {row.get('phone', 'N/A')}")
-            st.markdown(f"**Email:** {row.get('email', 'N/A')}")
-            if row.get("website"):
-                st.markdown(f"**Website:** [{row['website']}]({row['website']})")
-
-        with col2:
-            st.markdown(f"**Animals:** {row.get('animals_str', 'N/A')}")
-            st.markdown(f"**Accreditation:** {row.get('accreditations_str', 'N/A')}")
-            st.markdown(f"**VN Training:** {'Yes' if row.get('has_vn_training') else 'No'}")
-            st.markdown(f"**EMS:** {'Yes' if row.get('has_ems') else 'No'}")
-
-        if row.get("vets"):
-            st.markdown("**Veterinary Surgeons:**")
-            for vet in row["vets"]:
-                role_str = f" ({vet['role']})" if vet.get("role") else ""
-                quals_str = f" — {vet['qualifications']}" if vet.get("qualifications") else ""
-                st.markdown(f"- {vet['name']}{quals_str}{role_str}")
-
-        if row.get("hours") and isinstance(row["hours"], dict):
-            st.markdown("**Opening Hours:**")
-            for day, time_str in row["hours"].items():
-                st.markdown(f"- {day}: {time_str}")
+if selected:
+    row = filtered[filtered["name"] == selected].iloc[0]
+    render_practice_detail(row)

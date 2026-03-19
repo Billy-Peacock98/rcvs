@@ -19,7 +19,11 @@ def scrape_practices(
     """
     Scrape all VetGDP practices for a given keyword and save to JSON.
 
-    :param keyword: Search keyword (e.g. 'surrey', 'hampshire')
+    When *keyword* is empty, all UK VetGDP practices are scraped and each
+    practice's region is set from the county provided by the RCVS map
+    marker data.
+
+    :param keyword: Search keyword (e.g. 'surrey', 'hampshire'), or empty for all UK
     :param output_dir: Directory to write the output JSON file
 
     :return: Path to the written JSON file
@@ -27,7 +31,8 @@ def scrape_practices(
     client = RCVSClient()
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.info("Scraping VetGDP practices for keyword: {}", keyword)
+    label = keyword or "uk"
+    logger.info("Scraping VetGDP practices for keyword: '{}'", label)
 
     first_url = build_search_url(keyword, page=1)
     response = client.get(first_url)
@@ -47,17 +52,29 @@ def scrape_practices(
     logger.info("Collected {} practice stubs from list pages", len(all_stubs))
 
     practices = []
+    skipped = 0
     for i, stub in enumerate(all_stubs, 1):
         slug = stub["slug"]
         logger.info("[{}/{}] Scraping detail: {}", i, len(all_stubs), stub["name"])
 
         detail_url = f"/find-a-vet-practice/{slug}/"
-        response = client.get(detail_url)
+        try:
+            response = client.get(detail_url)
+        except Exception as exc:
+            logger.warning("Skipping {} — {}", stub["name"], exc)
+            skipped += 1
+            continue
+
         detail_soup = BeautifulSoup(response.text, "lxml")
-        practice = parse_detail_page(detail_soup, stub, region=keyword)
+
+        region = stub.get("county", "") or keyword
+        practice = parse_detail_page(detail_soup, stub, region=region)
         practices.append(practice)
 
-    output_file = output_dir / f"{keyword}_vetgdp.json"
+    if skipped:
+        logger.warning("Skipped {} practices due to errors", skipped)
+
+    output_file = output_dir / f"{label}_vetgdp.json"
     data = [p.model_dump() for p in practices]
     output_file.write_text(json.dumps(data, indent=2, ensure_ascii=False))
     logger.info("Wrote {} practices to {}", len(practices), output_file)
@@ -72,8 +89,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Scrape VetGDP practices from RCVS")
     parser.add_argument(
         "--keyword",
-        default="surrey",
-        help="Search keyword (e.g. 'surrey', 'hampshire')",
+        default="",
+        help="Search keyword (e.g. 'surrey', 'hampshire'). Empty for all UK.",
     )
     parser.add_argument(
         "--output-dir",

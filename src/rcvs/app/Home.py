@@ -3,7 +3,7 @@ import streamlit as st
 from rcvs.app.components.auth import require_auth
 
 st.set_page_config(
-    page_title="VetGDP Practice Finder",
+    page_title="Home",
     page_icon="🐾",
     layout="wide",
     initial_sidebar_state="expanded",

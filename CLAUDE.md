@@ -46,7 +46,7 @@ uv run rcvs-scrape --keyword surrey --output-dir data/practices
 uv run rcvs-scrape --keyword hampshire --output-dir data/practices
 
 # Launch the Streamlit app locally
-uv run streamlit run src/rcvs/app/main.py
+uv run streamlit run src/rcvs/app/Home.py
 ```
 
 ### Deployment
@@ -54,7 +54,7 @@ uv run streamlit run src/rcvs/app/main.py
 The app is deployed to **Streamlit Community Cloud** from the `main` branch.
 
 - **URL:** https://rcvs-tracker.streamlit.app/
-- **Main file:** `src/rcvs/app/main.py`
+- **Main file:** `src/rcvs/app/Home.py`
 - **Dependencies:** Resolved via `uv.lock` (Community Cloud auto-detects this)
 - **Secrets:** Google Sheets credentials are configured via Streamlit's Secrets Management (`st.secrets["gcp_service_account"]`), not committed to the repo
 
@@ -98,15 +98,16 @@ rcvs/
         │   └── tracker.py      # Google Sheets contact status read/write
         └── app/
             ├── __init__.py
-            ├── main.py         # Streamlit landing page
+            ├── Home.py         # Streamlit landing page
             ├── pages/
-            │   ├── 1_Practice_Table.py   # Searchable table + expandable details
-            │   ├── 2_Map_View.py         # Map with practice pins
+            │   ├── 1_Practice_Table.py   # Searchable table + selectbox detail view
+            │   ├── 2_Map_View.py         # Interactive folium map with click-to-detail
             │   ├── 3_Contact_Tracker.py  # Status tracking (Sheets or local)
             │   └── 4_Export.py           # CSV/Excel download
             └── components/
                 ├── __init__.py
                 ├── filters.py      # Sidebar filter widgets (shared across pages)
+                ├── practice_detail.py # Shared practice detail rendering (used by Table + Map)
                 └── data_loader.py  # Load JSON, enrich with geo + computed columns
 ```
 
@@ -150,12 +151,13 @@ The end user is **non-technical** — they will not interact with code, the term
 - **Logging**: `loguru`
 - **Data handling**: `pandas`
 - **Contact tracking**: `gspread` + `google-auth` (optional)
+- **Map**: `folium` + `streamlit-folium`
 
 ## Dependencies
 
 All in `pyproject.toml`:
 ```
-streamlit, pandas, loguru, requests, beautifulsoup4, lxml, pydantic, gspread, google-auth, openpyxl
+streamlit, pandas, loguru, requests, beautifulsoup4, lxml, pydantic, gspread, google-auth, openpyxl, folium, streamlit-folium
 ```
 
 CLI entry point: `rcvs-scrape = "rcvs.scraper.run:main"`
