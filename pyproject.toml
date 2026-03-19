@@ -1,0 +1,27 @@
+[project]
+name = "rcvs"
+version = "0.1.0"
+description = "VetGDP Practice Finder — scrape, filter, and track UK vet practices"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit",
+    "pandas",
+    "loguru",
+    "requests",
+    "beautifulsoup4",
+    "lxml",
+    "pydantic",
+    "gspread",
+    "google-auth",
+    "openpyxl",
+]
+
+[project.scripts]
+rcvs-scrape = "rcvs.scraper.run:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rcvs"]

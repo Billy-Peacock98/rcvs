@@ -1,0 +1,17 @@
+import streamlit as st
+
+st.set_page_config(
+    page_title="VetGDP Practice Finder",
+    page_icon="🐾",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+st.title("VetGDP Practice Finder")
+st.markdown(
+    "Find, filter, and track UK veterinary practices offering the "
+    "**Veterinary Graduate Development Programme (VetGDP)**."
+)
+st.markdown("Use the sidebar to navigate between pages.")
+
+st.sidebar.success("Select a page above.")
