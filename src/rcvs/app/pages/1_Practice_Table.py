@@ -1,12 +1,9 @@
 import streamlit as st
 
-from rcvs.app.components.auth import require_auth
 from rcvs.app.components.data_loader import load_practices
 from rcvs.app.components.filters import render_region_selector, render_sidebar_filters
 from rcvs.app.components.practice_detail import render_practice_detail
 
-st.set_page_config(page_title="Practice Table", page_icon="🐾", layout="wide")
-require_auth()
 st.title("Practice Table")
 
 region = render_region_selector()
