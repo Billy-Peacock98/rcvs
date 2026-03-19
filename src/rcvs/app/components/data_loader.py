@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 from loguru import logger
+
+# Bookham, Surrey — default centre for distance calculations
+BOOKHAM_LAT = 51.283
+BOOKHAM_LON = -0.373
 
 DATA_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "data" / "practices"
 
@@ -87,7 +92,37 @@ def load_practices(
         lookup = PostcodeLookup()
         df = lookup.enrich_dataframe(df)
 
+    df["distance_miles"] = df.apply(
+        lambda r: _haversine_miles(BOOKHAM_LAT, BOOKHAM_LON, r["lat"], r["lon"])
+        if pd.notna(r["lat"]) and pd.notna(r["lon"]) else None,
+        axis=1,
+    )
+
     return df
+
+
+def _haversine_miles(
+    lat1: float,
+    lon1: float,
+    lat2: float,
+    lon2: float
+) -> float:
+    """
+    Calculate the great-circle distance between two points in miles.
+
+    :param lat1: Latitude of point 1
+    :param lon1: Longitude of point 1
+    :param lat2: Latitude of point 2
+    :param lon2: Longitude of point 2
+
+    :return: Distance in miles
+    """
+    r = 3958.8  # Earth radius in miles
+    lat1, lon1, lat2, lon2 = (math.radians(x) for x in (lat1, lon1, lat2, lon2))
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    return 2 * r * math.asin(math.sqrt(a))
 
 
 def _find_director(

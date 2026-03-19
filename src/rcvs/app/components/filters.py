@@ -20,6 +20,17 @@ def render_sidebar_filters(
 
     filtered = df.copy()
 
+    if "distance_miles" in filtered.columns:
+        max_distance = st.sidebar.slider(
+            "Max distance from Bookham (miles)",
+            min_value=5,
+            max_value=200,
+            value=25,
+            step=5,
+        )
+        filtered = filtered[filtered["distance_miles"] <= max_distance]
+        filtered = filtered.sort_values("distance_miles")
+
     search = st.sidebar.text_input("Search practices", placeholder="Name, address, postcode...")
     if search:
         search_lower = search.lower()

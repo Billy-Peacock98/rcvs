@@ -20,6 +20,8 @@ def render_practice_detail(
     col1, col2 = st.columns(2)
 
     with col1:
+        if pd.notna(row.get("distance_miles")):
+            st.markdown(f"**Distance:** {row['distance_miles']:.1f} miles from Bookham")
         st.markdown(f"**Address:** {row.get('address', 'N/A')}")
         st.markdown(f"**Postcode:** {row.get('postcode', 'N/A')}")
         st.markdown(f"**Phone:** {row.get('phone', 'N/A')}")

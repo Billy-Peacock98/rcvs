@@ -20,7 +20,7 @@ filtered = render_sidebar_filters(df)
 st.caption(f"Showing {len(filtered)} of {len(df)} practices in {region.title()}")
 
 display_cols = [
-    "name", "address", "postcode", "phone", "email",
+    "name", "distance_miles", "address", "postcode", "phone", "email",
     "director", "vet_count", "nurse_count", "animals_str",
     "accreditations_str", "has_vn_training", "has_ems",
 ]
@@ -30,6 +30,7 @@ st.dataframe(
     filtered[display_cols],
     column_config={
         "name": st.column_config.TextColumn("Practice", width="medium"),
+        "distance_miles": st.column_config.NumberColumn("Distance (mi)", format="%.1f", width="small"),
         "address": st.column_config.TextColumn("Address", width="medium"),
         "postcode": st.column_config.TextColumn("Postcode", width="small"),
         "phone": st.column_config.TextColumn("Phone", width="small"),
