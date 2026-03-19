@@ -135,9 +135,7 @@ class ContactTracker:
             cell = self._sheet.find(name)
             if cell:
                 row_num = cell.row
-                self._sheet.update_cell(row_num, 2, status)
-                self._sheet.update_cell(row_num, 3, notes)
-                self._sheet.update_cell(row_num, 4, now)
+                self._sheet.update(f"B{row_num}:D{row_num}", [[status, notes, now]])
             else:
                 self._sheet.append_row([name, status, notes, now])
 

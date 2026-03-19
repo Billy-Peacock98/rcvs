@@ -57,7 +57,9 @@ if not tracker.is_configured:
 
     statuses = st.session_state.local_statuses
 else:
-    tracker.init_sheet(df["name"].tolist())
+    if "sheet_initialised" not in st.session_state:
+        tracker.init_sheet(df["name"].tolist())
+        st.session_state.sheet_initialised = True
     statuses = tracker.get_all_statuses()
 
 filtered = render_sidebar_filters(df)
