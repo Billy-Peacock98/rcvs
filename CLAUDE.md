@@ -11,9 +11,15 @@ A tool to find, filter, and organise UK veterinary practices that offer the VetG
 
 Source: https://findavet.rcvs.org.uk/find-a-vet-practice/?filter-keyword=&filter-vetgdp=true&filter-searchtype=practice
 
-## Current Status (2026-03-18)
+## Current Status (2026-03-19)
 
-**All 6 build phases are complete.** The scraper has been run for Surrey (71 practices). The Streamlit app is functional with all 4 pages working.
+**All 6 build phases are complete. App is deployed to Streamlit Community Cloud.**
+
+- **Live app:** https://rcvs-tracker.streamlit.app/
+- **Hosted on:** Streamlit Community Cloud (free tier, deploys from `main` branch)
+- Scraper has been run for Surrey (71 practices)
+- All 4 Streamlit pages working (Table, Map, Contact Tracker, Export)
+- Contact Tracker supports `st.secrets` for Cloud credentials and falls back to local-only mode
 
 ### Data Quality — Surrey Scrape
 
@@ -39,9 +45,18 @@ uv run rcvs-scrape --keyword surrey --output-dir data/practices
 # Scrape a different region
 uv run rcvs-scrape --keyword hampshire --output-dir data/practices
 
-# Launch the Streamlit app
+# Launch the Streamlit app locally
 uv run streamlit run src/rcvs/app/main.py
 ```
+
+### Deployment
+
+The app is deployed to **Streamlit Community Cloud** from the `main` branch.
+
+- **URL:** https://rcvs-tracker.streamlit.app/
+- **Main file:** `src/rcvs/app/main.py`
+- **Dependencies:** Resolved via `uv.lock` (Community Cloud auto-detects this)
+- **Secrets:** Google Sheets credentials are configured via Streamlit's Secrets Management (`st.secrets["gcp_service_account"]`), not committed to the repo
 
 ## Documentation
 
@@ -100,7 +115,7 @@ rcvs/
 - **Coordinates from RCVS map markers**: The list page embeds `gmap-marker` divs with exact lat/lng for each practice. This is far more accurate than outcode-level geocoding and costs zero extra requests. The outcode CSV (`data/postcodes/outcodes.csv`) is only a fallback for the rare case where a practice's map marker is missing.
 - **CloudFlare email decoding**: All emails on the RCVS site are obfuscated with CF's XOR cipher. The scraper decodes them from the `data-cfemail` hex attribute.
 - **Scraper separate from app**: Data is committed to the repo as JSON. The Streamlit app never hits the RCVS website — it reads from local files. This decouples scraping from the user experience.
-- **Google Sheets tracker with graceful fallback**: When no service account credentials are present, the Contact Tracker page falls back to session-only local state and shows setup instructions.
+- **Google Sheets tracker with graceful fallback**: Credentials are loaded from `st.secrets` (for Cloud) or a local `service-account.json` file. When neither is present, the Contact Tracker falls back to session-only local state.
 - **Multi-region via convention**: `data/practices/{keyword}_vetgdp.json` files are auto-discovered by the app's region selector.
 
 ### Data Flow

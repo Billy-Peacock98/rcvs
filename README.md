@@ -4,6 +4,8 @@ A tool to find, filter, and organise UK veterinary practices that offer the [Vet
 
 Scrapes practice data from the [RCVS Find a Vet](https://findavet.rcvs.org.uk/find-a-vet-practice/) directory and presents it in a friendly web interface for browsing, filtering, and tracking contact progress.
 
+**Live app:** https://rcvs-tracker.streamlit.app/
+
 ## Features
 
 - **Scraper** — Extracts practice details (contact info, staff, opening hours, animals treated, accreditations) from the RCVS website with rate limiting and retry logic
