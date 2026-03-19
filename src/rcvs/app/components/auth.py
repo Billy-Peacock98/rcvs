@@ -20,16 +20,24 @@ import streamlit as st
 import streamlit_authenticator as stauth
 
 
-def _build_authenticator() -> stauth.Authenticate | None:
+def _get_authenticator() -> stauth.Authenticate | None:
     """
-    Build an Authenticate instance from st.secrets.
+    Get or create a cached Authenticate instance from st.secrets.
+
+    The instance is stored in session_state to avoid creating
+    duplicate CookieManager components within a single script run.
 
     :return: Authenticator instance, or None if secrets are missing
     """
+    if "_authenticator" in st.session_state:
+        return st.session_state["_authenticator"]
+
     try:
         if "auth" not in st.secrets:
+            st.session_state["_authenticator"] = None
             return None
     except FileNotFoundError:
+        st.session_state["_authenticator"] = None
         return None
 
     auth_cfg = st.secrets["auth"]
@@ -43,13 +51,15 @@ def _build_authenticator() -> stauth.Authenticate | None:
             "password": info["password"],
         }
 
-    return stauth.Authenticate(
+    authenticator = stauth.Authenticate(
         credentials=credentials,
         cookie_name="rcvs_auth",
         cookie_key=auth_cfg.get("cookie_key", "rcvs-default-key"),
         cookie_expiry_days=30,
         auto_hash=True,
     )
+    st.session_state["_authenticator"] = authenticator
+    return authenticator
 
 
 def is_authenticated() -> bool:
@@ -61,8 +71,10 @@ def is_authenticated() -> bool:
 
     :return: True if the user is logged in or auth is not configured
     """
-    authenticator = _build_authenticator()
-    if authenticator is None:
+    try:
+        if "auth" not in st.secrets:
+            return True
+    except FileNotFoundError:
         return True
 
     return st.session_state.get("authentication_status") is True
@@ -74,7 +86,7 @@ def build_login_page() -> None:
 
     Intended for use with ``st.Page(build_login_page, ...)``.
     """
-    authenticator = _build_authenticator()
+    authenticator = _get_authenticator()
     if authenticator is None:
         return
 
@@ -92,7 +104,7 @@ def render_logout() -> None:
 
     Only renders when auth is configured and user is logged in.
     """
-    authenticator = _build_authenticator()
+    authenticator = _get_authenticator()
     if authenticator is None:
         return
 
