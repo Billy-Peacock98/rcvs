@@ -14,6 +14,7 @@ dependencies = [
     "gspread",
     "google-auth",
     "openpyxl",
+    "streamlit-authenticator>=0.4.2",
 ]
 
 [project.scripts]

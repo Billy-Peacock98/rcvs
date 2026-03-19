@@ -1,9 +1,11 @@
 import streamlit as st
 
+from rcvs.app.components.auth import require_auth
 from rcvs.app.components.data_loader import load_practices
 from rcvs.app.components.filters import render_region_selector, render_sidebar_filters
 
 st.set_page_config(page_title="Map View", page_icon="🐾", layout="wide")
+require_auth()
 st.title("Map View")
 
 region = render_region_selector()

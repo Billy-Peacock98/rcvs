@@ -3,11 +3,13 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from rcvs.app.components.auth import require_auth
 from rcvs.app.components.data_loader import enrich_with_status, load_practices
 from rcvs.app.components.filters import render_region_selector
 from rcvs.sheets.tracker import STATUSES, ContactTracker
 
 st.set_page_config(page_title="Contact Tracker", page_icon="🐾", layout="wide")
+require_auth()
 st.title("Contact Tracker")
 
 region = render_region_selector()
