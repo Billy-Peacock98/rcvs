@@ -13,6 +13,7 @@ Scrapes practice data from the [RCVS Find a Vet](https://findavet.rcvs.org.uk/fi
 - **Interactive Map** — Folium map with clickable pins; single-click a marker to see full practice details
 - **Searchable Table** — Filterable dataframe with type-to-search practice selector for detailed views
 - **Contact Tracker** — Single-practice view with auto-saving status and notes to Google Sheets, progress summary table, status counts at a glance
+- **Email Draft Generator** — Personalised email drafts addressed to the practice director by name, with practice details auto-filled; copy and paste into your email client
 - **Export** — Download filtered results as CSV or Excel, including contact status and notes; filter by status for targeted exports (e.g. "Not Contacted" call lists)
 - **Authentication** — Cookie-based login via streamlit-authenticator (optional, for deployed app)
 

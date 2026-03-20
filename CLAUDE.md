@@ -11,7 +11,7 @@ A tool to find, filter, and organise UK veterinary practices that offer the VetG
 
 Source: https://findavet.rcvs.org.uk/find-a-vet-practice/?filter-keyword=&filter-vetgdp=true&filter-searchtype=practice
 
-## Current Status (2026-03-19)
+## Current Status (2026-03-20)
 
 **All 6 build phases are complete. App is deployed to Streamlit Community Cloud.**
 
@@ -25,6 +25,7 @@ Source: https://findavet.rcvs.org.uk/find-a-vet-practice/?filter-keyword=&filter
 - `st.navigation` API for custom sidebar labels
 - Authentication via `streamlit-authenticator` with graceful fallback
 - Contact Tracker: single-practice view with auto-save to Google Sheets, status summary, progress table
+- Personalised email draft generator: auto-fills director name, practice name, animals from RCVS data
 - Export page includes contact status/notes and status filter for targeted exports (e.g. "Not Contacted" call lists)
 
 ### Data Quality — UK Scrape
@@ -102,13 +103,14 @@ rcvs/
             │   ├── 0_Home.py             # Landing page
             │   ├── 1_Practice_Table.py   # Searchable table + selectbox detail view
             │   ├── 2_Map_View.py         # Interactive folium map with click-to-detail
-            │   ├── 3_Contact_Tracker.py  # Single-practice status view with auto-save
+            │   ├── 3_Contact_Tracker.py  # Status tracking + email draft generator
             │   └── 4_Export.py           # CSV/Excel download with status + notes
             └── components/
                 ├── __init__.py
                 ├── auth.py         # Authentication (streamlit-authenticator, cached instance)
                 ├── filters.py      # Sidebar filters: distance slider, search, animals, etc.
                 ├── practice_detail.py # Shared practice detail rendering (used by Table + Map)
+                ├── email_draft.py  # Personalised email draft generator for outreach
                 └── data_loader.py  # Load JSON, enrich with geo/distance + computed columns
 ```
 
@@ -121,6 +123,7 @@ rcvs/
 - **st.navigation for routing**: `main.py` is the single router using `st.Page`/`st.navigation`. This allows custom sidebar labels and centralises auth. Page files contain only their content logic.
 - **Cached authenticator**: The `stauth.Authenticate` instance is stored in `st.session_state` to avoid duplicate `CookieManager` components per script run.
 - **Google Sheets tracker with graceful fallback**: Credentials are loaded from `st.secrets` (for Cloud) or a local `service-account.json` file. When neither is present, the Contact Tracker falls back to session-only local state. Sheet is auto-initialised with all practice names on first visit. Status/notes auto-save on widget change (no save button).
+- **Personalised email drafts**: The Contact Tracker generates email drafts addressed to the director/principal by name (from RCVS staff data), with practice name and animals treated auto-filled. Falls back to "Hiring Manager" when no director is known. User edits and copies into their email client.
 - **Contact-aware exports**: The Export page loads statuses from Sheets and includes contact status + notes columns. A status filter allows exporting specific groups (e.g. only "Not Contacted" for call lists).
 - **Interactive folium map**: `folium.Marker` with tooltips rendered via `streamlit-folium`. Single-click on a pin shows full practice details below the map. `last_object_clicked_tooltip` identifies the clicked practice by name.
 - **Multi-region via convention**: `data/practices/{keyword}_vetgdp.json` files are auto-discovered by the app's region selector.
