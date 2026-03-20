@@ -5,6 +5,7 @@ import streamlit as st
 
 from rcvs.app.components.data_loader import enrich_with_status, load_practices
 from rcvs.app.components.filters import render_region_selector, render_sidebar_filters
+from rcvs.app.components.email_draft import render_email_draft
 from rcvs.app.components.practice_detail import render_practice_detail
 from rcvs.sheets.tracker import STATUSES, ContactTracker
 
@@ -124,6 +125,9 @@ if selected:
             placeholder="Add notes...",
             height=100,
         )
+
+    st.divider()
+    render_email_draft(row)
 
 # --- Contacted practices summary ---
 contacted = filtered[filtered["status"] != "Not Contacted"]
